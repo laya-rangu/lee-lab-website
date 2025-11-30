@@ -13,53 +13,61 @@ export default function DashboardAdmin() {
 
   useEffect(() => {
     async function loadStats() {
-      const p = await API.get("/people");
-      const pub = await API.get("/publications");
-      const req = await API.get("/material-requests");
-      const con = await API.get("/contact");
+      try {
+        const [pRes, pubRes, reqRes, conRes] = await Promise.all([
+          API.get("/people"),
+          API.get("/publications"),
+          API.get("/materials"),
+          API.get("/contact"),
+        ]);
 
-      setStats({
-        people: p.data.length,
-        publications: pub.data.length,
-        requests: req.data.length,
-        contacts: con.data.length,
-      });
+        setStats({
+          people: pRes.data.length,
+          publications: pubRes.data.length,
+          requests: reqRes.data.length,
+          contacts: conRes.data.length,
+        });
 
-      createChart(req.data);
+        // Simple chart: requests over time (by date)
+        const ctx = document.getElementById("reqChart");
+        if (ctx) {
+          const byDate = {};
+
+          reqRes.data.forEach((r) => {
+            const d = new Date(r.createdAt).toLocaleDateString();
+            byDate[d] = (byDate[d] || 0) + 1;
+          });
+
+          const labels = Object.keys(byDate);
+          const data = Object.values(byDate);
+
+          // Destroy existing chart instance if any
+          if (ctx._chartInstance) {
+            ctx._chartInstance.destroy();
+          }
+
+          const chart = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: "Material Requests",
+                  data,
+                },
+              ],
+            },
+          });
+
+          ctx._chartInstance = chart;
+        }
+      } catch (err) {
+        console.error("Error loading dashboard stats", err);
+      }
     }
 
     loadStats();
   }, []);
-
-  const createChart = (requests) => {
-    const ctx = document.getElementById("reqChart");
-
-    const monthlyCounts = new Array(12).fill(0);
-    requests.forEach((r) => {
-      const month = new Date(r.createdAt).getMonth();
-      monthlyCounts[month]++;
-    });
-
-    new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: [
-          "Jan","Feb","Mar","Apr","May","Jun",
-          "Jul","Aug","Sep","Oct","Nov","Dec"
-        ],
-        datasets: [
-          {
-            label: "Material Requests",
-            data: monthlyCounts,
-            borderColor: "#0d6efd",
-            borderWidth: 3,
-            tension: 0.4,
-            fill: false,
-          },
-        ],
-      },
-    });
-  };
 
   return (
     <>

@@ -1,15 +1,17 @@
+// backend/routes/materialRoutes.js
 import express from "express";
 import {
-  requestMaterial,
-  getRequests,
-  updateRequestStatus,
+  createMaterialRequest,
+  getAllMaterialRequests,
 } from "../controllers/materialController.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", protect, requestMaterial);
-router.get("/", protect, adminOnly, getRequests);
-router.put("/:id", protect, adminOnly, updateRequestStatus);
+// LAB MEMBER submits material request
+router.post("/", protect, createMaterialRequest);
+
+// ADMIN views all requests
+router.get("/", protect, adminOnly, getAllMaterialRequests);
 
 export default router;

@@ -1,22 +1,42 @@
 import TeachingSchedule from "../models/teachingSchedule.model.js";
 
 export const getTeaching = async (req, res) => {
-  const schedule = await TeachingSchedule.find();
-  res.json(schedule);
+  try {
+    const list = await TeachingSchedule.find();
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching teaching schedule", error: err.message });
+  }
 };
 
 export const addTeaching = async (req, res) => {
-  const entry = new TeachingSchedule(req.body);
-  const saved = await entry.save();
-  res.status(201).json(saved);
-};
+  try {
+    const { courseTitle, courseCode, schedule, semester } = req.body;
 
-export const updateTeaching = async (req, res) => {
-  const updated = await TeachingSchedule.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(updated);
+    if (!courseTitle || !courseCode || !schedule || !semester) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const newTeaching = await TeachingSchedule.create({
+      courseTitle,
+      courseCode,
+      schedule,
+      semester,
+    });
+
+    res.status(201).json(newTeaching);
+  } catch (err) {
+    console.error("Error adding teaching schedule:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
 };
 
 export const deleteTeaching = async (req, res) => {
-  await TeachingSchedule.findByIdAndDelete(req.params.id);
-  res.json({ message: "Teaching schedule deleted" });
+  try {
+    const deleted = await TeachingSchedule.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "Teaching schedule not found" });
+    res.json({ message: "Teaching removed" });
+  } catch (err) {
+    res.status(500).json({ message: "Error deleting teaching", error: err.message });
+  }
 };

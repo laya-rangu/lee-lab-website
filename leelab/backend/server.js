@@ -20,27 +20,27 @@ connectDB();
 
 const app = express();
 
-app.use(cors({ origin: "*", credentials: true }));
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Lee Lab API running");
 });
 
+// ROUTES (ORDER IS IMPORTANT)
 app.use("/api/auth", authRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/equipment", equipmentRoutes);
-app.use("/api/material-requests", materialRoutes);
+app.use("/api/materials", materialRoutes);   // ✅ FIXED — keep BEFORE teaching/news
 app.use("/api/news", newsRoutes);
 app.use("/api/people", peopleRoutes);
 app.use("/api/publications", publicationRoutes);
 app.use("/api/research", researchRoutes);
 app.use("/api/teaching", teachingRoutes);
 
+// ERROR HANDLERS
 app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(`🚀 Server running on port ${PORT}`)
-);
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

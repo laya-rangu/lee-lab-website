@@ -4,55 +4,88 @@ import API from "../services/api";
 export default function ViewForms() {
   const [contact, setContact] = useState([]);
   const [requests, setRequests] = useState([]);
+  const [error, setError] = useState("");
+
+  const load = async () => {
+    try {
+      setError("");
+      const [conRes, reqRes] = await Promise.all([
+        API.get("/contact"),     // GET /api/contact
+        API.get("/materials"),   // GET /api/materials
+      ]);
+
+      setContact(conRes.data);
+      setRequests(reqRes.data);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load form submissions");
+    }
+  };
 
   useEffect(() => {
     load();
   }, []);
 
-  const load = async () => {
-    const con = await API.get("/contact");
-    const req = await API.get("/material-requests");
-
-    setContact(con.data);
-    setRequests(req.data);
-  };
-
   return (
-    <>
-      <h1 className="fw-bold mb-4">Form Submissions</h1>
+    <div className="container mt-4">
+      <h2 className="fw-bold mb-4">Form Submissions</h2>
 
-      <h3 className="mt-4 mb-2">Contact Messages</h3>
-      <table className="table table-bordered shadow-sm mb-5">
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      {/* CONTACT MESSAGES */}
+      <h4>Contact Messages</h4>
+      <table className="table table-striped table-bordered mb-5">
         <thead>
-          <tr><th>Name</th><th>Email</th><th>Message</th></tr>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Message</th>
+            <th>Date</th>
+          </tr>
         </thead>
         <tbody>
           {contact.map((c) => (
             <tr key={c._id}>
               <td>{c.name}</td>
               <td>{c.email}</td>
+              <td>{c.subject}</td>
               <td>{c.message}</td>
+              <td>{new Date(c.createdAt).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <h3 className="mt-4 mb-2">Material Requests</h3>
-      <table className="table table-bordered shadow-sm">
+      {/* MATERIAL REQUESTS */}
+      <h4>Material Requests</h4>
+      <table className="table table-striped table-bordered">
         <thead>
-          <tr><th>Item</th><th>Qty</th><th>Purpose</th><th>Requester</th></tr>
+          <tr>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Reason</th>
+            <th>Requested By</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
         </thead>
         <tbody>
           {requests.map((r) => (
             <tr key={r._id}>
               <td>{r.itemName}</td>
               <td>{r.quantity}</td>
-              <td>{r.purpose}</td>
-              <td>{r.requesterName} ({r.requesterEmail})</td>
+              <td>{r.reason}</td>
+              <td>
+                {r.user?.name || "Unknown"}{" "}
+                {r.user?.email && <span>({r.user.email})</span>}
+              </td>
+              <td>{r.status}</td>
+              <td>{new Date(r.createdAt).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
       </table>
-    </>
+    </div>
   );
 }

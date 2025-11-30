@@ -1,40 +1,177 @@
-import { useState } from "react";
+
+/*import { useState } from "react";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const { loginUser } = useAuth();
-  const [form, setForm] = useState({ email: "", password: "" });
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await API.post("/auth/login", form);
-    loginUser(res.data);
+    setError("");
+
+    try {
+      // Call backend login
+      const res = await API.post("/auth/login", form);
+
+      // Save user in context + localStorage
+      loginUser(res.data);
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Invalid email or password.");
+    }
   };
 
   return (
-    <div className="row justify-content-center mt-5">
-      <div className="col-md-5">
-        <div className="card shadow p-4">
-          <h2 className="fw-bold mb-4">Lab Login</h2>
+    <div className="container mt-5" style={{ maxWidth: "500px" }}>
+      <h2 className="text-center mb-4">Login</h2>
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label>Email</label>
-              <input className="form-control" name="email" onChange={handleChange} required />
-            </div>
+      {error && (
+        <div className="alert alert-danger text-center">{error}</div>
+      )}
 
-            <div className="mb-3">
-              <label>Password</label>
-              <input type="password" className="form-control" name="password" onChange={handleChange} required />
-            </div>
+      <form onSubmit={handleSubmit}>
 
-            <button className="btn btn-primary w-100">Login</button>
-          </form>
+        <div className="mb-3">
+          <label className="form-label">Email</label>
+          <input
+            name="email"
+            type="email"
+            className="form-control"
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
         </div>
-      </div>
+
+        <div className="mb-3">
+          <label className="form-label">Password</label>
+          <input
+            name="password"
+            type="password"
+            className="form-control"
+            placeholder="Enter password"
+            value={form.password}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <button className="btn btn-primary w-100" type="submit">
+          Login
+        </button>
+      </form>
+    </div>
+  );
+}
+*/
+import { useState } from "react";
+import API from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
+export default function Login() {
+  const { loginUser } = useAuth();
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess(false);
+
+    try {
+      const res = await API.post("/auth/login", form);
+
+      // Save user info (AuthContext)
+      loginUser(res.data);
+
+      // Show success message
+      setSuccess(true);
+
+      // Redirect after 1 second
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Invalid email or password.");
+    }
+  };
+
+  return (
+    <div className="container mt-5" style={{ maxWidth: "500px" }}>
+      <h2 className="text-center mb-4">Login</h2>
+
+      {/* SUCCESS POPUP */}
+      {success && (
+        <div className="alert alert-success text-center">
+          Logged in successfully!
+        </div>
+      )}
+
+      {/* ERROR POPUP */}
+      {error && (
+        <div className="alert alert-danger text-center">{error}</div>
+      )}
+
+      {/* Hide form on success */}
+      {!success && (
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label className="form-label">Email</label>
+            <input
+              name="email"
+              type="email"
+              className="form-control"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Password</label>
+            <input
+              name="password"
+              type="password"
+              className="form-control"
+              placeholder="Enter password"
+              value={form.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <button className="btn btn-primary w-100" type="submit">
+            Login
+          </button>
+        </form>
+      )}
     </div>
   );
 }

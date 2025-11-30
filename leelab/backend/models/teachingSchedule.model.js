@@ -1,31 +1,13 @@
 import mongoose from "mongoose";
 
-const teachingScheduleSchema = new mongoose.Schema({
-  semester: {
-    type: String,
-    required: true,
+const TeachingScheduleSchema = new mongoose.Schema(
+  {
+    courseTitle: { type: String, required: true },
+    courseCode: { type: String, required: true },
+    schedule: { type: String, required: true },
+    semester: { type: String, required: true },   // REQUIRED FIELD
   },
-  courseTitle: {
-    type: String,
-    required: true,
-  },
-  courseCode: {
-    type: String,
-    required: true,
-  },
-  schedule: {
-    type: String, // e.g. "Mon-Wed-Fri 10:00–11:00 AM"
-    required: true,
-  },
-  location: {
-    type: String,
-    required: false,
-  },
-  lastUpdated: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  { timestamps: true }
+);
 
-const TeachingSchedule = mongoose.model("TeachingSchedule", teachingScheduleSchema);
-export default TeachingSchedule;
+export default mongoose.model("TeachingSchedule", TeachingScheduleSchema);

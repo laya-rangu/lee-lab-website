@@ -1,31 +1,34 @@
+// backend/controllers/materialController.js
 import MaterialRequest from "../models/materialRequest.model.js";
 
-export const requestMaterial = async (req, res) => {
-  const { itemName, quantity, purpose } = req.body;
+export const createMaterialRequest = async (req, res) => {
+  try {
+    const { itemName, quantity, reason } = req.body;
 
-  const request = await MaterialRequest.create({
-    requester: req.user._id,
-    requesterName: req.user.name,
-    requesterEmail: req.user.email,
-    itemName,
-    quantity,
-    purpose,
-  });
+    if (!itemName || !quantity || !reason) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
 
-  res.status(201).json(request);
+    const request = await MaterialRequest.create({
+      user: req.user.id,
+      itemName,
+      quantity,
+      reason,
+    });
+
+    res.status(201).json(request);
+  } catch (error) {
+    console.error("Error creating material request:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
-export const getRequests = async (req, res) => {
-  const requests = await MaterialRequest.find().populate("requester", "name email");
-  res.json(requests);
-};
-
-export const updateRequestStatus = async (req, res) => {
-  const { status, adminRemarks } = req.body;
-  const reqDoc = await MaterialRequest.findByIdAndUpdate(
-    req.params.id,
-    { status, adminRemarks },
-    { new: true }
-  );
-  res.json(reqDoc);
+export const getAllMaterialRequests = async (_req, res) => {
+  try {
+    const data = await MaterialRequest.find().populate("user", "name email");
+    res.json(data);
+  } catch (error) {
+    console.error("Error loading material requests:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
